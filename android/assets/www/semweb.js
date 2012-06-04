@@ -1,5 +1,5 @@
 // Look up the location of the individual given a position object defined by W3C geolocation api
-function lookup(position) {
+function lookup(position, callback) {
   // Using the geonames postal code lookup
   $.getJSON("http://api.geonames.org/findNearbyPostalCodesJSON",
             {"lat":position.coords.latitude,
@@ -21,12 +21,12 @@ function lookup(position) {
 					", "+x.adminName1);
 
 	      // From postal code, attempt to get to DBpedia URI
-	      getGeonamesId(x.placeName,x.adminCode1,x.countryCode);
+	      getGeonamesId(x.placeName,x.adminCode1,x.countryCode,callback);
             });
 }
 
 // Gets the Geonames ID so we can find the DBpedia URI
-function getGeonamesId(name,admin,country) {
+function getGeonamesId(name,admin,country,callback) {
   // Generic search interface for Geonames
   $.getJSON("http://api.geonames.org/searchJSON",
             {"name":name,
@@ -49,13 +49,13 @@ function getGeonamesId(name,admin,country) {
 	      var uri = "http://sws.geonames.org/"+x.geonameId+"/";
 	      //$("#uri").text(uri);
 	      if(uri!=null && uri != "") {
-                lookupURI(uri);
+                lookupURI(uri, callback);
 	      }
             });
 }
 
 // Look up a URI in DBpedia from another LOD URI
-function lookupURI(uri) {
+function lookupURI(uri, callback) {
   // Query the DBpedia endpoint
   $.get("http://dbpedia.org/sparql",
 	{"query":"\
@@ -87,8 +87,7 @@ OPTIONAL { ?uri <http://dbpedia.org/ontology/wikiPageRedirects> ?alt } \
 	  // put URI in localstorage
 	  window.localStorage["dbpedia.uri"] = str;
 
-	  // Lookup artists affiliated with this URI
-	  findArtists(str);
+	  callback(str);
 	},
 	"json");
 }

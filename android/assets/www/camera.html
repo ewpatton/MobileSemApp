@@ -7,20 +7,15 @@
 <script type="text/javascript" charset="utf-8" src="phonegap-1.4.1.js"></script>
 <script type="text/javascript" charset="utf-8" src="jquery-1.7.2.js"></script>
 <script type="text/javascript" charset="utf-8" src="modernizr.js"></script>
+<script type="text/javascript" charset="utf-8" src="2.5.3-crypto-sha1.js"></script>
 <script type="text/javascript" charset="utf-8" src="camera.js"></script>
 <script type="text/javascript" charset="utf-8" src="app.js"></script>
 </head>
-<body onload="init('settings')">
-<div class="screen active" id="settings">
-<div>
-<label for="username">Username</label><br/>
-<input type="text" id="username" name="username"/>
-</div>
-<div>
-<label for="email">Email</label><br/>
-<input type="text" id="email" name="email"/>
-</div>
-<div class="bigbutton" id="save_settings"><a>Save Settings</a></div>
+<body onload="init('take_photo')">
+<div class="screen active" id="take_photo">
+<img id="photo" height="384" />
+<div class="bigbutton" id="save_photo">Save Photo</div>
+<div class="bigbutton" id="discard">Discard</div>
 </div>
 </body>
 </html>

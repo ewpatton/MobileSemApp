@@ -1,5 +1,107 @@
 var app_base = "file:///android_asset/www/";
+var api = "http://aquarius.tw.rpi.edu/projects/semtech2012/";
+var curloc = null;
 
+////////////////////
+//// Take Photo
+////////////////////
+function finishGeoloc(pos) {
+	curloc = pos;
+	$.getJSON("http://api.geonames.org/findNearbyPostalCodesJSON",
+	            {"lat":position.coords.latitude,
+	             "lng":position.coords.longitude,
+	             "maxRows":"1",
+	             "username":"mobilesemtech2011"},
+	            function(data,status,xhr) {
+
+		      var x=null;
+
+		      // Verify that we've got results
+		      if(typeof(data.postalCodes.length)!==undefined &&
+	                 data.postalCodes.length > 0)
+	                x = data.postalCodes[0];
+		      if(!x) return;
+
+		      // Update the local store
+		      window.store.getAt(0).set('text',"Location: "+x.placeName+
+						", "+x.adminName1);
+
+		      // From postal code, attempt to get to DBpedia URI
+		      getGeonamesId(x.placeName,x.adminCode1,x.countryCode,function(str) {
+		    	  window.dbpediaUri=str;
+		      });
+	      });
+}
+
+function startGeoloc() {
+	navigator.geolocation.getCurrentPosition(finishGeoloc);
+}
+
+function saveMetadata(url, data) {
+	$.ajax(url+"?metadata", {async: true, contentType: "text/turtle",
+		data:data, processData: false, type: "PUT", success:function() {
+			window.alert("Image saved!");
+			window.location.href="index.html";
+		}});
+}
+
+function handlePicture(data) {
+	if(curloc != null) {
+		var sha1 = Crypto.SHA1(data, {asString: true});
+		var url = api+"images/"+sha1+".jpg";
+		var desc = window.prompt("Caption","");
+		var rdf="@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n";
+		rdf += "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n";
+		rdf += "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n";
+		rdf += "@prefix dc: <http://purl.org/dc/terms/> .\n";
+		rdf += "@prefix sioc: <http://rdfs.org/sioc/ns#> .\n";
+		rdf += "@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .\n";
+		rdf += "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
+		rdf += "@prefix : <http://aquarius.tw.rpi.edu/projects/semtech2012/> .\n";
+		rdf += "<"+url+"> a foaf:Image ; " +
+				"dc:created \""+"\" ; " +
+				"dc:creator <"+api+"user/"+localStorage.getItem("webcapsule.user")+"> ; " +
+				"dc:description \"\"\""+desc+"\"\"\" ; " +
+				"taken_at [ " +
+				"geo:lat \""+curloc.coords.latitude+"\"^^xsd:double ; " +
+				"geo:long \""+curloc.coords.longitude+"\"^^xsd:double ; " +
+				(window.dbpediaUri?"located_in <"+window.dbpediaUri+">":"") +
+				"] ; " +
+				".";
+		$.ajax(url, {async: true, contentType: "image/jpeg;base64", data:data,
+			processData: false, type:"PUT", success:function() {
+				saveMetadata(url, rdf);
+			}});
+		
+	}
+}
+
+function cameraError(msg) {
+	window.alert(msg);
+}
+
+function showCamera() {
+	navigatorcamera.getPicture(handlePicture, cameraError,
+			{ quality: 50, destinationType: Camera.DestinationType.DATA_URL,
+		sourceType: Camera.PictureSourceType.CAMERA,
+		allowEdit: true,
+		encodingType: Camera.EncodingType.JPEG,
+		targetWidth: 256,
+		targetHeight: 256});
+}
+
+function take_photo_init() {
+	$("#take_photo #save_photo");
+	$("#take_photo #discard").click(function() {
+		window.location.href = "index.html";
+	});
+	startGeoloc();
+	showCamera();
+}
+
+////////////////////
+//// Settings
+////////////////////
 var emailRegex = new RegExp("^[-a-z0-9~!$%^&*_=+}{\'?]+(\.[-a-z0-9~!$%^&*_=+}{\'?]+)*" +
 		"@([a-z0-9_][-a-z0-9_]*(\.[-a-z0-9_]+)*" +
 		"\.(aero|arpa|biz|com|coop|edu|gov|info|int|mil|museum|name|net|org|" +
@@ -44,6 +146,9 @@ function settings_init() {
 	}
 }
 
+////////////////////
+//// Main Menu
+////////////////////
 function main_menu_init() {
 	$("#main_menu #take_photo").addClass("disabled").click(take_photo);
 	$("#main_menu #find_photos").addClass("disabled").click(find_photos);
@@ -59,6 +164,9 @@ function main_menu_init() {
 	}
 }
 
+////////////////////
+//// Generic
+////////////////////
 function init(page) {
 	eval(page+'_init();');
 }
