@@ -10,8 +10,8 @@ var imagedata = null;
 function finishGeoloc(pos) {
 	curloc = pos;
 	$.getJSON("http://api.geonames.org/findNearbyPostalCodesJSON",
-	            {"lat":position.coords.latitude,
-	             "lng":position.coords.longitude,
+	            {"lat":pos.coords.latitude,
+	             "lng":pos.coords.longitude,
 	             "maxRows":"1",
 	             "username":"mobilesemtech2011"},
 	            function(data,status,xhr) {
@@ -25,8 +25,8 @@ function finishGeoloc(pos) {
 		      if(!x) return;
 
 		      // Update the local store
-		      window.store.getAt(0).set('text',"Location: "+x.placeName+
-						", "+x.adminName1);
+//		      window.store.getAt(0).set('text',"Location: "+x.placeName+
+//						", "+x.adminName1);
 
 		      // From postal code, attempt to get to DBpedia URI
 		      getGeonamesId(x.placeName,x.adminCode1,x.countryCode,function(str) {
@@ -93,7 +93,7 @@ function cameraError(msg) {
 }
 
 function showCamera() {
-	navigatorcamera.getPicture(handlePicture, cameraError,
+	navigator.camera.getPicture(handlePicture, cameraError,
 			{ quality: 50, destinationType: Camera.DestinationType.DATA_URL,
 		sourceType: Camera.PictureSourceType.CAMERA,
 		allowEdit: true,

@@ -80,7 +80,7 @@ try {
 	else {
 	  // handle posting information to fuseki here
 	  $sparql = new SPARQLServer("http://".$fuseki["addr"].":".$fuseki["port"]."/".$fuseki["dataset"]);
-	  if(!$sparql->put($tmp, base_url().$_SERVER["PATH_INFO"]."?metadata", $type)) {
+	  if(!$sparql->put($tmp, base_url().$_SERVER["PATH_INFO"]."?metadata", $type["type"])) {
 	    header("HTTP/1.1 500 Internal Server Error");
 	    header("Content-Type: text/html");
 	    echo '{"error":"We were unable to process your request at this time."}';
