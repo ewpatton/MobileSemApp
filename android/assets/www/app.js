@@ -1,6 +1,8 @@
 var app_base = "file:///android_asset/www/";
 var api = "http://aquarius.tw.rpi.edu/projects/semtech2012/";
 var curloc = null;
+var dbpediaUri = null;
+var imagedata = null;
 
 ////////////////////
 //// Take Photo
@@ -46,34 +48,44 @@ function saveMetadata(url, data) {
 }
 
 function handlePicture(data) {
-	if(curloc != null) {
-		var sha1 = Crypto.SHA1(data, {asString: true});
-		var url = api+"images/"+sha1+".jpg";
-		var desc = window.prompt("Caption","");
-		var rdf="@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n";
-		rdf += "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n";
-		rdf += "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n";
-		rdf += "@prefix dc: <http://purl.org/dc/terms/> .\n";
-		rdf += "@prefix sioc: <http://rdfs.org/sioc/ns#> .\n";
-		rdf += "@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .\n";
-		rdf += "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
-		rdf += "@prefix : <http://aquarius.tw.rpi.edu/projects/semtech2012/> .\n";
-		rdf += "<"+url+"> a foaf:Image ; " +
-				"dc:created \""+"\" ; " +
-				"dc:creator <"+api+"user/"+localStorage.getItem("webcapsule.user")+"> ; " +
-				"dc:description \"\"\""+desc+"\"\"\" ; " +
-				"taken_at [ " +
-				"geo:lat \""+curloc.coords.latitude+"\"^^xsd:double ; " +
-				"geo:long \""+curloc.coords.longitude+"\"^^xsd:double ; " +
-				(window.dbpediaUri?"located_in <"+window.dbpediaUri+">":"") +
-				"] ; " +
-				".";
-		$.ajax(url, {async: true, contentType: "image/jpeg;base64", data:data,
-			processData: false, type:"PUT", success:function() {
-				saveMetadata(url, rdf);
-			}});
-		
+	window.imagedata = data;
+	$("#photo").attr("src","data:image/jpeg;base64,"+data);
+}
+
+function save_picture() {
+	if(curloc == null) {
+		window.alert("Waiting for your location, please be patient.");
+		return false;
 	}
+	if(imagedata == null) {
+		window.alert("You haven't taken a picture yet!");
+		return false;
+	}
+	var sha1 = Crypto.SHA1(imagedata, {asString: true});
+	var url = api+"images/"+sha1+".jpg";
+	var desc = window.prompt("Caption","");
+	var rdf="@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n";
+	rdf += "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n";
+	rdf += "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n";
+	rdf += "@prefix dc: <http://purl.org/dc/terms/> .\n";
+	rdf += "@prefix sioc: <http://rdfs.org/sioc/ns#> .\n";
+	rdf += "@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .\n";
+	rdf += "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n";
+	rdf += "@prefix : <http://aquarius.tw.rpi.edu/projects/semtech2012/> .\n";
+	rdf += "<"+url+"> a foaf:Image ; " +
+			"dc:created \""+"\" ; " +
+			"dc:creator <"+api+"user/"+localStorage.getItem("webcapsule.user")+"> ; " +
+			"dc:description \"\"\""+desc+"\"\"\" ; " +
+			"taken_at [ " +
+			"geo:lat \""+curloc.coords.latitude+"\"^^xsd:double ; " +
+			"geo:long \""+curloc.coords.longitude+"\"^^xsd:double ; " +
+			(window.dbpediaUri?"located_in <"+window.dbpediaUri+">":"") +
+			"] ; " +
+			".";
+	$.ajax(url, {async: true, contentType: "image/jpeg;base64", data:data,
+		processData: false, type:"PUT", success:function() {
+			saveMetadata(url, rdf);
+		}});
 }
 
 function cameraError(msg) {
@@ -149,6 +161,15 @@ function settings_init() {
 ////////////////////
 //// Main Menu
 ////////////////////
+function take_photo() {
+	if($("#main_menu #take_photo").hasClass("disabled")) return false;
+	window.location.href="camera.html";
+}
+
+function find_photos() {
+	return false;
+}
+
 function main_menu_init() {
 	$("#main_menu #take_photo").addClass("disabled").click(take_photo);
 	$("#main_menu #find_photos").addClass("disabled").click(find_photos);
