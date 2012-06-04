@@ -10,12 +10,17 @@
 <script type="text/javascript" charset="utf-8" src="camera.js"></script>
 <script type="text/javascript" charset="utf-8" src="app.js"></script>
 </head>
-<body onload="init('main_menu')">
-<div class="screen active" id="main_menu">
-<h1>Web Capsule</h1>
-<div class="bigbutton disabled" id="take_photo"><a>Take a photo</a></div>
-<div class="bigbutton disabled" id="find_photos"><a>Find photos</a></div>
-<div class="bigbutton" id="settings"><a href="settings.html">Settings</a></div>
+<body onload="init('settings')">
+<div class="screen active" id="settings">
+<div>
+<label for="username">Username</label><br/>
+<input type="text" id="username" name="username"/>
+</div>
+<div>
+<label for="email">Email</label><br/>
+<input type="text" id="email" name="email"/>
+</div>
+<div class="bigbutton" id="save_settings"><a>Save Settings</a></div>
 </div>
 </body>
 </html>
